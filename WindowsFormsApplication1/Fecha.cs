@@ -13,12 +13,6 @@ namespace WindowsFormsApplication1
 {
     class Fecha
     {
-        public static void asignarFecha() 
-        {
-            SqlCommand cmd = new SqlCommand("ROAD_TO_PROYECTO.Asignar_Fecha", DataBase.GetInstance().Connection);
-            cmd.CommandType = CommandType.StoredProcedure;
-            cmd.Parameters.AddWithValue("@Fecha", SqlDbType.NVarChar).Value = Fecha.getFechaActual();
-        }
 
         public static DateTime getFechaActual()
         {            
