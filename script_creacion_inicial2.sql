@@ -1,21 +1,14 @@
------ Creación de Esquema ------
+----- CreaciÃ³n de Esquema ------
 
 create schema ROAD_TO_PROYECTO
 GO
 
 ----- Funciones -----
---Función para obtener fecha
-create function ROAD_TO_PROYECTO.FechaActual()
-returns datetime
-as begin
-	return (select top 1 * from ROAD_TO_PROYECTO.Fecha)
-end
-GO
 
 create function ROAD_TO_PROYECTO.SacarTildes(@Usuario nvarchar(255))
 returns nvarchar(255)
 as begin
-return (replace(replace(replace(replace(replace (@Usuario, 'á', 'a'),'é','e'),'í','i'),'ó','o'),'ú','u'))
+return (replace(replace(replace(replace(replace (@Usuario, 'Ã¡', 'a'),'Ã©','e'),'Ã­','i'),'Ã³','o'),'Ãº','u'))
 end
 GO
 
@@ -44,14 +37,8 @@ ELSE IF (select max(Oferta_Monto) from gd_esquema.Maestra where Publicacion_Cod 
   end
  GO
 
------- Creación de Tablas -----
+------ CreaciÃ³n de Tablas -----
 PRINT 'Creando Tablas...'
-
---Fecha
-create table ROAD_TO_PROYECTO.Fecha(
-Fecha datetime PRIMARY KEY
-)
-GO
 
 --Domicilio
 create table ROAD_TO_PROYECTO.Domicilio(
@@ -68,7 +55,7 @@ GO
 --Usuario
 create table ROAD_TO_PROYECTO.Usuario (
 Usuario nvarchar(255) PRIMARY KEY,
-Contraseña nvarchar(255) NOT NULL,
+ContraseÃ±a nvarchar(255) NOT NULL,
 Mail nvarchar(50),
 Habilitado bit default 1,
 Nuevo bit default 1,
@@ -230,8 +217,8 @@ Monto numeric(18,2)
 )
 GO
 
------ Migración de Datos -----
-PRINT 'Comenzando Migración de Datos...'
+----- MigraciÃ³n de Datos -----
+PRINT 'Comenzando MigraciÃ³n de Datos...'
 
 --Domicilios
 PRINT 'Migrando Domicilios...'
@@ -250,12 +237,12 @@ GO
 --Usuarios 
 PRINT 'Asignando Usuarios...'
 insert into ROAD_TO_PROYECTO.Usuario
-select ROAD_TO_PROYECTO.SacarTildes(LOWER(Cli_Apeliido+RIGHT(Cli_Nombre,1))), SUBSTRING(master.dbo.fn_varbintohexstr(HashBytes('SHA2_256', 'password')), 3, 255),Cli_Mail,1,0,NULL,ROAD_TO_PROYECTO.FechaActual() as Fecha, (select DomiId from ROAD_TO_PROYECTO.Domicilio where RTRIM(Calle) like RTRIM(Cli_Dom_Calle) and Numero = Cli_Nro_Calle and Piso = Cli_Piso and Depto = Cli_Depto and CodPostal = Cli_Cod_Postal) as Domicilio, 0 
+select ROAD_TO_PROYECTO.SacarTildes(LOWER(Cli_Apeliido+RIGHT(Cli_Nombre,1))), SUBSTRING(master.dbo.fn_varbintohexstr(HashBytes('SHA2_256', 'password')), 3, 255),Cli_Mail,1,0,NULL,getdate() as Fecha, (select DomiId from ROAD_TO_PROYECTO.Domicilio where RTRIM(Calle) like RTRIM(Cli_Dom_Calle) and Numero = Cli_Nro_Calle and Piso = Cli_Piso and Depto = Cli_Depto and CodPostal = Cli_Cod_Postal) as Domicilio, 0 
 from gd_esquema.Maestra
 where Cli_Apeliido is not null and Cli_Nombre is not null
 group by Cli_Apeliido,Cli_Nombre,Cli_Mail,Cli_Dom_Calle,Cli_Nro_Calle,Cli_Piso,cli_depto,Cli_Cod_Postal
 UNION
-select ROAD_TO_PROYECTO.SacarDosPuntos(LOWER('razonsocial'+RIGHT(publ_empresa_razon_social,2))),'password',publ_empresa_mail,1,0,NULL,ROAD_TO_PROYECTO.FechaActual(), (select DomiId from ROAD_TO_PROYECTO.Domicilio where RTRIM(Calle) like RTRIM(Publ_Empresa_Dom_Calle) and Numero = Publ_Empresa_Nro_Calle and Piso = Publ_Empresa_Piso and Depto = Publ_Empresa_Depto and CodPostal = Publ_Empresa_Cod_Postal), 0
+select ROAD_TO_PROYECTO.SacarDosPuntos(LOWER('razonsocial'+RIGHT(publ_empresa_razon_social,2))),'password',publ_empresa_mail,1,0,NULL,getdate(), (select DomiId from ROAD_TO_PROYECTO.Domicilio where RTRIM(Calle) like RTRIM(Publ_Empresa_Dom_Calle) and Numero = Publ_Empresa_Nro_Calle and Piso = Publ_Empresa_Piso and Depto = Publ_Empresa_Depto and CodPostal = Publ_Empresa_Cod_Postal), 0
 from gd_esquema.Maestra
 where publ_empresa_razon_social is not null
 group by publ_empresa_razon_social,publ_empresa_mail, Publ_Empresa_Dom_Calle,Publ_empresa_Nro_Calle,Publ_Empresa_Piso,Publ_Empresa_Depto,Publ_Empresa_Cod_Postal
@@ -305,18 +292,18 @@ insert into ROAD_TO_PROYECTO.Funcion values('ABM Rol','Codigo en C# que habilite
 insert into ROAD_TO_PROYECTO.Funcion values('ABM Usuario','Codigo en C# que habilite esta funcion')
 insert into ROAD_TO_PROYECTO.Funcion values('ABM Visibilidad','Codigo en C# que habilite esta funcion')
 insert into ROAD_TO_PROYECTO.Funcion values('ABM Rubro','Codigo en C# que habilite esta funcion')
-insert into ROAD_TO_PROYECTO.Funcion values('Generar Publicación','Codigo en C# que habilite esta funcion')
+insert into ROAD_TO_PROYECTO.Funcion values('Generar PublicaciÃ³n','Codigo en C# que habilite esta funcion')
 insert into ROAD_TO_PROYECTO.Funcion values('Comprar/Ofertar','Codigo en C# que habilite esta funcion')
 insert into ROAD_TO_PROYECTO.Funcion values('Historial de Cliente','Codigo en C# que habilite esta funcion')
 insert into ROAD_TO_PROYECTO.Funcion values('Calificar al Vendedor','Codigo en C# que habilite esta funcion')
 insert into ROAD_TO_PROYECTO.Funcion values('Consulta de facturas realizadas al vendedor','Codigo en C# que habilite esta funcion')
-insert into ROAD_TO_PROYECTO.Funcion values('Listado Estadístico','Codigo en C# que habilite esta funcion')
+insert into ROAD_TO_PROYECTO.Funcion values('Listado EstadÃ­stico','Codigo en C# que habilite esta funcion')
 
 --Funciones por rol
 PRINT 'Creando Funciones Por Rol...'
 insert into ROAD_TO_PROYECTO.Funciones_Por_Rol select RolId,FuncId from ROAD_TO_PROYECTO.Rol,ROAD_TO_PROYECTO.Funcion where Nombre = 'Administrador' and Descripcion in ('ABM Rubro','ABM Rol','ABM Visibilidad','ABM Usuario')
-insert into ROAD_TO_PROYECTO.Funciones_Por_Rol select RolId,FuncId from ROAD_TO_PROYECTO.Rol,ROAD_TO_PROYECTO.Funcion where nombre = 'Cliente' and Descripcion in ('Generar Publicación','Comprar/Ofertar','Historial de Cliente','Calificar al Vendedor','Consulta de facturas realizadas al vendedor','Listado Estadístico')
-insert into ROAD_TO_PROYECTO.Funciones_Por_Rol select RolId,FuncId from ROAD_TO_PROYECTO.Rol,ROAD_TO_PROYECTO.Funcion where nombre = 'Empresa' and Descripcion in ('Generar Publicación','Consulta de facturas realizadas al vendedor','Listado Estadístico')
+insert into ROAD_TO_PROYECTO.Funciones_Por_Rol select RolId,FuncId from ROAD_TO_PROYECTO.Rol,ROAD_TO_PROYECTO.Funcion where nombre = 'Cliente' and Descripcion in ('Generar PublicaciÃ³n','Comprar/Ofertar','Historial de Cliente','Calificar al Vendedor','Consulta de facturas realizadas al vendedor','Listado EstadÃ­stico')
+insert into ROAD_TO_PROYECTO.Funciones_Por_Rol select RolId,FuncId from ROAD_TO_PROYECTO.Rol,ROAD_TO_PROYECTO.Funcion where nombre = 'Empresa' and Descripcion in ('Generar PublicaciÃ³n','Consulta de facturas realizadas al vendedor','Listado EstadÃ­stico')
 --Roles por usuario
 PRINT 'Creando Roles por Usuario...'
 insert into ROAD_TO_PROYECTO.Roles_Por_Usuario
@@ -414,12 +401,12 @@ create function ROAD_TO_PROYECTO.EspecificarDetalle(@Cantidad numeric(18,0), @Mo
 returns nvarchar(255)
 as begin
 if @Monto = @PrecioVisibilidad
-return 'Precio por tipo publicación'
+return 'Precio por tipo publicaciÃ³n'
 else if ROUND(@Monto,0) = ROUND(@PrecioPublicacion * @PorcentajeComision * @Cantidad,0)
  or ROUND(@Monto,0) = ROUND(@PrecioPublicacion * @PorcentajeComision * @Cantidad,0,1)
  or ROUND(@Monto,0,1) = ROUND(@PrecioPublicacion * @PorcentajeComision * @Cantidad,0)
  or ROUND(@Monto,0,1) = ROUND(@PrecioPublicacion * @PorcentajeComision * @Cantidad,0,1)
-return 'Comisión por productos vendidos'
+return 'ComisiÃ³n por productos vendidos'
 return 'Otras Comisiones'
 end 
 GO
@@ -434,7 +421,7 @@ GO
 ----- Otras Funciones -----
 
 ----- Stored Procedures -----
---Asignar Fecha del archivo de configuración
+--Asignar Fecha del archivo de configuraciÃ³n
 
 CREATE PROCEDURE ROAD_TO_PROYECTO.Asignar_Fecha
 @Fecha datetime
@@ -572,20 +559,20 @@ CREATE PROCEDURE ROAD_TO_PROYECTO.ListaRubros
 	end
 GO
 
---Actualización de los logs fallidos de un usuario
+--ActualizaciÃ³n de los logs fallidos de un usuario
 CREATE PROCEDURE ROAD_TO_PROYECTO.Usuario_Logs_Fallidos
 	@Usuario nvarchar(255),
-	@Contraseña nvarchar(255)
+	@ContraseÃ±a nvarchar(255)
 	as
 	begin
 	if(select habilitado from ROAD_TO_PROYECTO.Usuario where @Usuario = Usuario)=1
 	begin
-		--Incremento el contrador si no coinciden las contraseñas
+		--Incremento el contrador si no coinciden las contraseÃ±as
 		update ROAD_TO_PROYECTO.Usuario set LogsFallidos = LogsFallidos + 1
-		where Usuario = @Usuario and Contraseña != @Contraseña
-		--Reinicio el contador si coinciden las contraseñas
+		where Usuario = @Usuario and ContraseÃ±a != @ContraseÃ±a
+		--Reinicio el contador si coinciden las contraseÃ±as
 		update ROAD_TO_PROYECTO.Usuario set LogsFallidos = 0
-		where Usuario = @Usuario and Contraseña = @Contraseña
+		where Usuario = @Usuario and ContraseÃ±a = @ContraseÃ±a
 	end
 		--Inhabilito a los usuarios con 3 logs fallidos
 		update ROAD_TO_PROYECTO.Usuario set Habilitado = 0
@@ -598,10 +585,10 @@ CREATE PROCEDURE ROAD_TO_PROYECTO.Usuario_Login
 	@password nvarchar(255)
 	as
 	begin 
-		execute ROAD_TO_PROYECTO.Usuario_Logs_Fallidos @Usuario = @username, @Contraseña = @password
-		select u.Usuario as username, u.Contraseña as password, u.Habilitado as habilitado, rpu.RolId as rol 
+		execute ROAD_TO_PROYECTO.Usuario_Logs_Fallidos @Usuario = @username, @ContraseÃ±a = @password
+		select u.Usuario as username, u.ContraseÃ±a as password, u.Habilitado as habilitado, rpu.RolId as rol 
 		from ROAD_TO_PROYECTO.Usuario u, ROAD_TO_PROYECTO.Roles_Por_Usuario rpu
-		where Usuario = @username and Contraseña = @password
+		where Usuario = @username and ContraseÃ±a = @password
 		and u.Usuario = rpu.UserId
 		
 	end
@@ -625,14 +612,14 @@ GO
 
 CREATE PROCEDURE ROAD_TO_PROYECTO.Alta_Usuario
 	@Usuario nvarchar(255),
-	@Contraseña nvarchar(255),
+	@ContraseÃ±a nvarchar(255),
 	@Mail nvarchar(50)
 	as
 	begin
 		if(not exists(select u.Usuario from ROAD_TO_PROYECTO.Usuario u where u.Usuario = @Usuario))
 		begin
-			insert into ROAD_TO_PROYECTO.Usuario (Usuario, Contraseña, Mail, Habilitado, Nuevo, Reputacion, FechaCreacion,/*Domicilio,*/ LogsFallidos)
-			values (@Usuario, @Contraseña, @Mail, 1, 1, null, ROAD_TO_PROYECTO.FechaActual(), 0)
+			insert into ROAD_TO_PROYECTO.Usuario (Usuario, ContraseÃ±a, Mail, Habilitado, Nuevo, Reputacion, FechaCreacion,/*Domicilio,*/ LogsFallidos)
+			values (@Usuario, @ContraseÃ±a, @Mail, 1, 1, null, ROAD_TO_PROYECTO.FechaActual(), 0)
 		end
 	end
 GO
@@ -672,7 +659,7 @@ GO
 
 CREATE PROCEDURE ROAD_TO_PROYECTO.Alta_Cliente
 	@Usuario nvarchar(255),
-	@Contraseña nvarchar(255),
+	@ContraseÃ±a nvarchar(255),
 	@Mail nvarchar(50),
 	@RolAsignado nvarchar(255),
 	@TipoDocumento nvarchar(5),
@@ -697,7 +684,7 @@ CREATE PROCEDURE ROAD_TO_PROYECTO.Alta_Cliente
 		begin
 			if not exists(select c.NroDocumento from ROAD_TO_PROYECTO.Cliente c where c.TipoDocumento = @TipoDocumento and c.NroDocumento = @NroDocumento)
 			begin
-				execute ROAD_TO_PROYECTO.Alta_Usuario @Usuario = @Usuario, @Contraseña = @Contraseña, @Mail = @Mail
+				execute ROAD_TO_PROYECTO.Alta_Usuario @Usuario = @Usuario, @ContraseÃ±a = @ContraseÃ±a, @Mail = @Mail
 									
 				insert into ROAD_TO_PROYECTO.Cliente (TipoDocumento, NroDocumento, Apellido, Nombres, FechaNacimiento, Telefono)
 				values (@TipoDocumento, @NroDocumento, @Apellido, @Nombres, @FechaNacimiento, @Telefono)
@@ -712,7 +699,7 @@ GO
 
 CREATE PROCEDURE ROAD_TO_PROYECTO.Alta_Empresa
 	@Usuario nvarchar(255),
-	@Contraseña nvarchar(255),
+	@ContraseÃ±a nvarchar(255),
 	@Mail nvarchar(50),
 	@RolAsignado nvarchar(255),
 	@RazonSocial nvarchar(255),
@@ -737,7 +724,7 @@ CREATE PROCEDURE ROAD_TO_PROYECTO.Alta_Empresa
 		begin
 			if not exists(select e.EmprId from ROAD_TO_PROYECTO.Empresa e where e.CUIT = @CUIT and e.RazonSocial = @RazonSocial)
 			begin
-				execute ROAD_TO_PROYECTO.Alta_Usuario @Usuario = @Usuario, @Contraseña = @Contraseña, @Mail = @Mail
+				execute ROAD_TO_PROYECTO.Alta_Usuario @Usuario = @Usuario, @ContraseÃ±a = @ContraseÃ±a, @Mail = @Mail
 				
 				insert into ROAD_TO_PROYECTO.Empresa (RazonSocial, CUIT, FechaCreacion, NombreContacto, Rubro, Telefono)
 				values (@RazonSocial, @CUIT, @FechaCreacion, @NombreContacto, (select RubrId from ROAD_TO_PROYECTO.Rubro r where r.DescripLarga = @Rubro), @Telefono)
@@ -752,19 +739,19 @@ GO
 
 CREATE PROCEDURE ROAD_TO_PROYECTO.Modificacion_Usuario
 	@Usuario nvarchar(255),
-	@Contraseña nvarchar(255),
+	@ContraseÃ±a nvarchar(255),
 	@Mail nvarchar(50)
 	as
 	begin
 		update ROAD_TO_PROYECTO.Usuario
-		set Contraseña = @Contraseña, Mail = @Mail
+		set ContraseÃ±a = @ContraseÃ±a, Mail = @Mail
 		where Usuario = @Usuario
 	end
 GO
 
 CREATE PROCEDURE ROAD_TO_PROYECTO.Modificacion_Cliente
 	@Usuario nvarchar(255),
-	@Contraseña nvarchar(255),
+	@ContraseÃ±a nvarchar(255),
 	@Mail nvarchar(50),
 	@RolAsignado nvarchar(255),
 	@TipoDocumento nvarchar(5),
@@ -786,7 +773,7 @@ CREATE PROCEDURE ROAD_TO_PROYECTO.Modificacion_Cliente
 	begin
 		if(@RolAsignado = 'Cliente')
 		begin
-			execute ROAD_TO_PROYECTO.Modificacion_Usuario @Usuario = @Usuario, @Contraseña = @Contraseña, @Mail = @Mail
+			execute ROAD_TO_PROYECTO.Modificacion_Usuario @Usuario = @Usuario, @ContraseÃ±a = @ContraseÃ±a, @Mail = @Mail
 									
 			update ROAD_TO_PROYECTO.Cliente 
 			set TipoDocumento = @TipoDocumento, NroDocumento = @NroDocumento, Apellido = @Apellido, Nombres = @Nombres, FechaNacimiento = @FechaNacimiento, Telefono = @Telefono
@@ -799,7 +786,7 @@ GO
 
 CREATE PROCEDURE ROAD_TO_PROYECTO.Modificacion_Empresa
 	@Usuario nvarchar(255),
-	@Contraseña nvarchar(255),
+	@ContraseÃ±a nvarchar(255),
 	@Mail nvarchar(50),
 	@RolAsignado nvarchar(255),
 	@RazonSocial nvarchar(255),
@@ -820,7 +807,7 @@ CREATE PROCEDURE ROAD_TO_PROYECTO.Modificacion_Empresa
 	begin
 		if(@RolAsignado = 'Empresa')
 		begin
-			execute ROAD_TO_PROYECTO.Modificacion_Usuario @Usuario = @Usuario, @Contraseña = @Contraseña, @Mail = @Mail
+			execute ROAD_TO_PROYECTO.Modificacion_Usuario @Usuario = @Usuario, @ContraseÃ±a = @ContraseÃ±a, @Mail = @Mail
 				
 			update ROAD_TO_PROYECTO.Empresa 
 			set RazonSocial = @RazonSocial, CUIT = @CUIT, FechaCreacion = @FechaCreacion, NombreContacto = @NombreContacto, Rubro = (select RubrId from ROAD_TO_PROYECTO.Rubro r where r.DescripLarga = @Rubro), Telefono = @Telefono
@@ -833,21 +820,21 @@ CREATE PROCEDURE ROAD_TO_PROYECTO.Modificacion_Empresa
 GO
 
 
-CREATE PROCEDURE ROAD_TO_PROYECTO.Cambiar_Contraseña
+CREATE PROCEDURE ROAD_TO_PROYECTO.Cambiar_ContraseÃ±a
 	@Usuario nvarchar(255),
-	@Contraseña nvarchar(255),
-	@ContraseñaNueva nvarchar(255)
+	@ContraseÃ±a nvarchar(255),
+	@ContraseÃ±aNueva nvarchar(255)
 	as
 	begin
-		if exists(select Usuario,Contraseña from ROAD_TO_PROYECTO.Usuario where @Usuario = Usuario and @Contraseña = Contraseña)
+		if exists(select Usuario,ContraseÃ±a from ROAD_TO_PROYECTO.Usuario where @Usuario = Usuario and @ContraseÃ±a = ContraseÃ±a)
 		begin
-			update ROAD_TO_PROYECTO.Usuario set Contraseña = @ContraseñaNueva
+			update ROAD_TO_PROYECTO.Usuario set ContraseÃ±a = @ContraseÃ±aNueva
 			where @Usuario = Usuario
 		end
 	end
 GO
 
---Busqueda de un cliente según parámetros
+--Busqueda de un cliente segÃºn parÃ¡metros
 CREATE PROCEDURE ROAD_TO_PROYECTO.Buscar_Cliente
 	@Mail nvarchar(50),
 	@NroDocumento numeric(18,0),
@@ -867,7 +854,7 @@ CREATE PROCEDURE ROAD_TO_PROYECTO.Buscar_Cliente
 	end
 GO
 
---Busqueda de una empresa según parámetros
+--Busqueda de una empresa segÃºn parÃ¡metros
 CREATE PROCEDURE ROAD_TO_PROYECTO.Buscar_Empresa
 	@RazonSocial nvarchar(255),
 	@CUIT nvarchar(50),
@@ -926,7 +913,7 @@ CREATE PROCEDURE ROAD_TO_PROYECTO.Comisiones_Valores
 	end
 GO
 
---Alta de una publicación, las publicaciones recién creadas se suponen como Borrador hasta ser activadas por el vendedor
+--Alta de una publicaciÃ³n, las publicaciones reciÃ©n creadas se suponen como Borrador hasta ser activadas por el vendedor
 CREATE PROCEDURE ROAD_TO_PROYECTO.Alta_Publicacion
 	@Descipcion nvarchar(255),
 	@Stock numeric(18,0),
@@ -955,7 +942,7 @@ CREATE PROCEDURE ROAD_TO_PROYECTO.Alta_Publicacion
 	end
 GO
 
---Modificación de una publicación en estado Borrador
+--ModificaciÃ³n de una publicaciÃ³n en estado Borrador
 CREATE PROCEDURE ROAD_TO_PROYECTO.Modificacion_Publicacion
 	@PubliId int,
 	@Descipcion nvarchar(255),
@@ -1000,7 +987,7 @@ CREATE PROCEDURE ROAD_TO_PROYECTO.Activar_Publicacion
 	end
 GO
 
---Facturacion inicial de una publicacion, se cobra la comisión inicial por tipo de publicacion siempre y cuando no sea una publicación gratuita
+--Facturacion inicial de una publicacion, se cobra la comisiÃ³n inicial por tipo de publicacion siempre y cuando no sea una publicaciÃ³n gratuita
 CREATE PROCEDURE ROAD_TO_PROYECTO.Facturar_Publicacion
 	@PublId int
 	as begin
@@ -1015,7 +1002,7 @@ CREATE PROCEDURE ROAD_TO_PROYECTO.Facturar_Publicacion
 		values(@FacturaActual, @PublId, (select FechaInicio from ROAD_TO_PROYECTO.Publicacion where PublId = @PublId))
 
 		insert into ROAD_TO_PROYECTO.Item_Factura (FactNro, Cantidad, Detalle, Monto) 
-		values (@FacturaActual, 1, 'Precio por tipo publicación', (select ComiFija from ROAD_TO_PROYECTO.Visibilidad v, ROAD_TO_PROYECTO.Publicacion p where p.PublId = @PublId and p.Visibilidad = v.VisiId))
+		values (@FacturaActual, 1, 'Precio por tipo publicaciÃ³n', (select ComiFija from ROAD_TO_PROYECTO.Visibilidad v, ROAD_TO_PROYECTO.Publicacion p where p.PublId = @PublId and p.Visibilidad = v.VisiId))
 
 		update ROAD_TO_PROYECTO.Factura
 		set Monto = (select sum(Monto) from ROAD_TO_PROYECTO.Item_Factura where FactNro = @FacturaActual)
@@ -1149,7 +1136,7 @@ CREATE PROCEDURE ROAD_TO_PROYECTO.Modificacion_Visibilidad
  	end
  GO
 
- --Busco visibilidad segun parámetros exactos y no exactos
+ --Busco visibilidad segun parÃ¡metros exactos y no exactos
 CREATE PROCEDURE ROAD_TO_PROYECTO.Buscar_Visibilidad
 	@Descripcion nvarchar(255),
  	@ComiFijaString nvarchar(255),
@@ -1183,7 +1170,7 @@ CREATE PROCEDURE ROAD_TO_PROYECTO.Finalizar_Publicaciones_Vencidas
 GO
 
 
---Muestro los datos relevantes a la transacción para que usuario pueda elegir sabiendo que va a calificar
+--Muestro los datos relevantes a la transacciÃ³n para que usuario pueda elegir sabiendo que va a calificar
 CREATE PROCEDURE ROAD_TO_PROYECTO.Transacciones_Sin_Calificar
 	@Usuario nvarchar(255)
 	as begin
@@ -1213,7 +1200,7 @@ GO
 -- VISTA DATOS CLIENTE
 CREATE VIEW ROAD_TO_PROYECTO.DatosCliente
 as
-select u.Usuario,u.Contraseña,u.Mail, c.Nombres, c.Apellido, c.Tipodocumento, c.Nrodocumento, isnull(c.Telefono,0) as Telefono, c.Fechanacimiento, d.Calle, d.Numero,d.Piso,d.Depto, d.Codpostal,isnull(d.Localidad,'') as Localidad
+select u.Usuario,u.ContraseÃ±a,u.Mail, c.Nombres, c.Apellido, c.Tipodocumento, c.Nrodocumento, isnull(c.Telefono,0) as Telefono, c.Fechanacimiento, d.Calle, d.Numero,d.Piso,d.Depto, d.Codpostal,isnull(d.Localidad,'') as Localidad
 from ROAD_TO_PROYECTO.Usuario u, ROAD_TO_PROYECTO.cliente c, ROAD_TO_PROYECTO.Roles_Por_Usuario rpu, ROAD_TO_PROYECTO.Domicilio d
 where u.domicilio = d.domiid and u.usuario = rpu.userid and rpu.rolid = (select rolid from ROAD_TO_PROYECTO.Rol where nombre = 'Cliente') and rpu.idexterno = c.clieid
 GO
@@ -1221,7 +1208,7 @@ GO
 CREATE PROCEDURE ROAD_TO_PROYECTO.ObtenerDatosCliente
 @IdUsuario nvarchar(255)
 as begin
-select Usuario, Contraseña, Mail, Nombres, Apellido, Tipodocumento,NroDocumento,Telefono,FechaNacimiento,Calle,Numero,Piso,Depto,CodPostal,Localidad
+select Usuario, ContraseÃ±a, Mail, Nombres, Apellido, Tipodocumento,NroDocumento,Telefono,FechaNacimiento,Calle,Numero,Piso,Depto,CodPostal,Localidad
 from ROAD_TO_PROYECTO.DatosCliente dc
 where dc.Usuario = @IdUsuario 
 end
@@ -1230,7 +1217,7 @@ GO
 -- VISTA DATOS EMPRESA
 CREATE VIEW ROAD_TO_PROYECTO.DatosEmpresa
 as
-select u.Usuario, u.Contraseña, u.Mail, e.RazonSocial, e.CUIT, e.FechaCreacion, e.NombreContacto, r.DescripLarga, isnull(e.Telefono,0) as Telefono, d.Calle, d.Numero, d.Piso, d.Depto, d.Codpostal, isnull(d.Localidad,'') as Localidad
+select u.Usuario, u.ContraseÃ±a, u.Mail, e.RazonSocial, e.CUIT, e.FechaCreacion, e.NombreContacto, r.DescripLarga, isnull(e.Telefono,0) as Telefono, d.Calle, d.Numero, d.Piso, d.Depto, d.Codpostal, isnull(d.Localidad,'') as Localidad
 from ROAD_TO_PROYECTO.Usuario u, ROAD_TO_PROYECTO.Empresa e, ROAD_TO_PROYECTO.Roles_Por_Usuario rpu, ROAD_TO_PROYECTO.Domicilio d, ROAD_TO_PROYECTO.Rubro r
 where u.Usuario = rpu.UserId 
 and rpu.RolId = (select rol.RolId from ROAD_TO_PROYECTO.Rol rol where nombre = 'Empresa') 
@@ -1242,7 +1229,7 @@ GO
 CREATE PROCEDURE ROAD_TO_PROYECTO.ObtenerDatosEmpresa
 @IdUsuario nvarchar(255)
 as begin
-select Usuario, Contraseña, Mail, RazonSocial, CUIT, FechaCreacion, NombreContacto, Telefono, DescripLarga, Calle, Numero, Piso, Depto, CodPostal, Localidad
+select Usuario, ContraseÃ±a, Mail, RazonSocial, CUIT, FechaCreacion, NombreContacto, Telefono, DescripLarga, Calle, Numero, Piso, Depto, CodPostal, Localidad
 from ROAD_TO_PROYECTO.DatosEmpresa de
 where de.Usuario = @IdUsuario 
 end
@@ -1306,7 +1293,7 @@ CREATE PROCEDURE ROAD_TO_PROYECTO.Buscar_Publicaciones
 			  SELECT @Parametro = left(@Parametros, @Posicion - 1)
 			  --Y cogemos los caracteres hasta esa posicion
 			  INSERT INTO ROAD_TO_PROYECTO.#parametros values ((select RubrId from ROAD_TO_PROYECTO.Rubro where DescripLarga = @Parametro), @Parametro)
-			  --y ese parámetro lo guardamos en la tabla temporal
+			  --y ese parÃ¡metro lo guardamos en la tabla temporal
 			  --Reemplazamos lo procesado con nada con la funcion stuff
 			  SELECT @Parametros = stuff(@Parametros, 1, @Posicion, '')
 			END
@@ -1400,7 +1387,7 @@ CREATE PROCEDURE ROAD_TO_PROYECTO.CrearTemporalVisibilidades
 			  SELECT @Parametro = left(@Parametros, @Posicion - 1)
 			  --Y cogemos los caracteres hasta esa posicion
 			  INSERT INTO ROAD_TO_PROYECTO.##parametrosvisibilidad values ((select VisiId from ROAD_TO_PROYECTO.Visibilidad where Descripcion = @Parametro), @Parametro)
-			  --y ese parámetro lo guardamos en la tabla temporal
+			  --y ese parÃ¡metro lo guardamos en la tabla temporal
 			  --Reemplazamos lo procesado con nada con la funcion stuff
 			  SELECT @Parametros = stuff(@Parametros, 1, @Posicion, '')
 			END
@@ -1432,7 +1419,7 @@ end
 GO
 
 /*CREATE VIEW ROAD_TO_PROYECTO.CantidadFacturasPorUsuarioYTrimestre as
-	select u.Usuario as Usuario,year(f.fecha) as Año,ROAD_TO_PROYECTO.ObtenerTrimestre (month(f.fecha)) as Trimestre, count(*) as CantFacturas
+	select u.Usuario as Usuario,year(f.fecha) as AÃ±o,ROAD_TO_PROYECTO.ObtenerTrimestre (month(f.fecha)) as Trimestre, count(*) as CantFacturas
 	from ROAD_TO_PROYECTO.Usuario u, ROAD_TO_PROYECTO.Publicacion p,ROAD_TO_PROYECTO.Factura f
 	where u.usuario = p.userid
 	and f.PubliId = p.PublId
@@ -1440,13 +1427,13 @@ GO
 GO*/
 
 
---Top 5: listados estadísticos
+--Top 5: listados estadÃ­sticos
 --right('0000' + cast(year(fact_fecha) as varchar(4)), 4) + '-' + right('00' + cast(month(fact_fecha) as varchar(2)), 2)
---Top 5 número 1:Vendedores con mayor cantidad de productos no vendidos. 
+--Top 5 nÃºmero 1:Vendedores con mayor cantidad de productos no vendidos. 
 
 CREATE PROCEDURE ROAD_TO_PROYECTO.Vendedores_Productos_No_Vendidos_Old
 	@Trimestre int,
-	@Año int,
+	@AÃ±o int,
 	@Parametros nvarchar(1000)
 	as begin
 	    exec ROAD_TO_PROYECTO.CrearTemporalVisibilidades @Parametros
@@ -1455,119 +1442,119 @@ CREATE PROCEDURE ROAD_TO_PROYECTO.Vendedores_Productos_No_Vendidos_Old
 		create table ROAD_TO_PROYECTO.#consulta1(
 		Usuario nvarchar(255),
 		Detalle nvarchar(255),
-		AñoMes nvarchar(255),
+		AÃ±oMes nvarchar(255),
 		Visibilidad int,
 		Monto numeric(18,0)
 		)
 		insert into ROAD_TO_PROYECTO.#consulta1
-		select u.Usuario, concat(c.Apellido, ' ' ,c.Nombres) , right('0000' + cast(year(p.FechaInicio) as varchar(4)), 4) + '-' + right('00' + cast(month(p.FechaInicio) as varchar(2)), 2) as 'Año-Mes', Visibilidad, count(*) as 'Cantidad Facturas'
+		select u.Usuario, concat(c.Apellido, ' ' ,c.Nombres) , right('0000' + cast(year(p.FechaInicio) as varchar(4)), 4) + '-' + right('00' + cast(month(p.FechaInicio) as varchar(2)), 2) as 'AÃ±o-Mes', Visibilidad, count(*) as 'Cantidad Facturas'
 		from ROAD_TO_PROYECTO.Usuario u, ROAD_TO_PROYECTO.Publicacion p, ROAD_TO_PROYECTO.Cliente c, ROAD_TO_PROYECTO.Rol r, ROAD_TO_PROYECTO.Roles_Por_Usuario rpu
 		where u.Usuario = p.UserId
 		and u.Usuario = rpu.UserId and rpu.RolId = r.RolId and r.Nombre = 'Cliente' and rpu.IdExterno = c.ClieId 
-		and (year(p.FechaInicio) = @Año or year(p.fechafin) = @Año)
+		and (year(p.FechaInicio) = @AÃ±o or year(p.fechafin) = @AÃ±o)
 		and ((@Trimestre*3)-2 between month(p.FechaInicio) and month(p.FechaFin) or (@Trimestre*3)-1 between month(p.FechaInicio) and month(p.FechaFin) or (@Trimestre*3) between month(p.FechaInicio) and month(p.FechaFin))
 		and Visibilidad in (select visiid from ROAD_TO_PROYECTO.##parametrosvisibilidad)
-		and p.PublId not in (select f.PubliId from ROAD_TO_PROYECTO.Factura f where year(f.Fecha) = @Año and ((@Trimestre*3) - month(f.Fecha) = 0 or (@Trimestre*3) - month(f.Fecha) = 1 or (@Trimestre*3) - month(f.Fecha) = 2))
+		and p.PublId not in (select f.PubliId from ROAD_TO_PROYECTO.Factura f where year(f.Fecha) = @AÃ±o and ((@Trimestre*3) - month(f.Fecha) = 0 or (@Trimestre*3) - month(f.Fecha) = 1 or (@Trimestre*3) - month(f.Fecha) = 2))
 		group by u.Usuario, c.Apellido, c.Nombres, right('0000' + cast(year(p.FechaInicio) as varchar(4)), 4) + '-' + right('00' + cast(month(p.FechaInicio) as varchar(2)), 2), Visibilidad
 		union
-		select u.Usuario, e.RazonSocial, right('0000' + cast(year(p.FechaInicio) as varchar(4)), 4) + '-' + right('00' + cast(month(p.FechaInicio) as varchar(2)), 2) as 'Año-Mes', Visibilidad, count(*) as 'Cantidad Facturas'
+		select u.Usuario, e.RazonSocial, right('0000' + cast(year(p.FechaInicio) as varchar(4)), 4) + '-' + right('00' + cast(month(p.FechaInicio) as varchar(2)), 2) as 'AÃ±o-Mes', Visibilidad, count(*) as 'Cantidad Facturas'
 		from ROAD_TO_PROYECTO.Usuario u, ROAD_TO_PROYECTO.Publicacion p, ROAD_TO_PROYECTO.Empresa e, ROAD_TO_PROYECTO.Rol r, ROAD_TO_PROYECTO.Roles_Por_Usuario rpu
 		where u.Usuario = p.UserId
 		and u.Usuario = rpu.UserId and rpu.RolId = r.RolId and r.Nombre = 'Empresa' and rpu.IdExterno = e.EmprId 
-		and (year(p.FechaInicio) = @Año or year(p.fechafin)=@Año)
+		and (year(p.FechaInicio) = @AÃ±o or year(p.fechafin)=@AÃ±o)
 		and ((@Trimestre*3)-2 between month(p.FechaInicio) and month(p.FechaFin) or (@Trimestre*3)-1 between month(p.FechaInicio) and month(p.FechaFin) or (@Trimestre*3) between month(p.FechaInicio) and month(p.FechaFin))
 		and Visibilidad in (select visiid from ROAD_TO_PROYECTO.##parametrosvisibilidad)
-		and p.PublId not in (select f.PubliId from ROAD_TO_PROYECTO.Factura f where year(f.Fecha) = @Año and ((@Trimestre*3) - month(f.Fecha) = 0 or (@Trimestre*3) - month(f.Fecha) = 1 or (@Trimestre*3) - month(f.Fecha) = 2))
+		and p.PublId not in (select f.PubliId from ROAD_TO_PROYECTO.Factura f where year(f.Fecha) = @AÃ±o and ((@Trimestre*3) - month(f.Fecha) = 0 or (@Trimestre*3) - month(f.Fecha) = 1 or (@Trimestre*3) - month(f.Fecha) = 2))
 		group by u.Usuario, e.RazonSocial, right('0000' + cast(year(p.FechaInicio) as varchar(4)), 4) + '-' + right('00' + cast(month(p.FechaInicio) as varchar(2)), 2), Visibilidad
 		order by count(*) desc
 
-		select top 5 Usuario, Detalle, AñoMes, (select Descripcion from ROAD_TO_PROYECTO.Visibilidad where VisiId = Visibilidad) as 'Visibilidad', Monto as 'Prods No Vendidos'
+		select top 5 Usuario, Detalle, AÃ±oMes, (select Descripcion from ROAD_TO_PROYECTO.Visibilidad where VisiId = Visibilidad) as 'Visibilidad', Monto as 'Prods No Vendidos'
 		from ROAD_TO_PROYECTO.#consulta1
-		order by Monto desc, AñoMes desc, (select ComiFija from ROAD_TO_PROYECTO.Visibilidad where VisiId = Visibilidad) desc
+		order by Monto desc, AÃ±oMes desc, (select ComiFija from ROAD_TO_PROYECTO.Visibilidad where VisiId = Visibilidad) desc
 
 	end
 GO
 
---Top 5 número 2: Clientes con mayor cantidad de productos comprados
+--Top 5 nÃºmero 2: Clientes con mayor cantidad de productos comprados
 CREATE PROCEDURE ROAD_TO_PROYECTO.Clientes_Productos_Comprados
 	@Trimestre int,
-	@Año int,
+	@AÃ±o int,
 	@RubroDesc nvarchar(255)
 	as begin
-		select top 5 u.Usuario, c.Apellido, c.Nombres, right('0000' + cast(year(t.Fecha) as varchar(4)), 4) + '-' + right('00' + cast(month(t.Fecha) as varchar(2)), 2) as 'Año-Mes', sum(t.Cantidad) as 'Cantidad Comprada'
+		select top 5 u.Usuario, c.Apellido, c.Nombres, right('0000' + cast(year(t.Fecha) as varchar(4)), 4) + '-' + right('00' + cast(month(t.Fecha) as varchar(2)), 2) as 'AÃ±o-Mes', sum(t.Cantidad) as 'Cantidad Comprada'
 		from ROAD_TO_PROYECTO.Usuario u, ROAD_TO_PROYECTO.Cliente c, ROAD_TO_PROYECTO.Rol r, ROAD_TO_PROYECTO.Roles_Por_Usuario rpu, 
 		ROAD_TO_PROYECTO.Transaccion t, ROAD_TO_PROYECTO.Publicacion p, ROAD_TO_PROYECTO.Rubro rub
 		where u.Usuario = rpu.UserId and rpu.RolId = r.RolId and r.Nombre = 'Cliente' and rpu.IdExterno = c.ClieId and t.ClieId = c.ClieId
 		and t.PubliId = p.PublId and p.Rubro = rub.RubrId and rub.DescripLarga = @RubroDesc
-		and year(t.Fecha) = @Año
+		and year(t.Fecha) = @AÃ±o
 		and ROAD_TO_PROYECTO.DentroDelTrimestre(@Trimestre, t.Fecha) = 1
 		group by u.Usuario, c.ClieId, c.Apellido, c.Nombres,  right('0000' + cast(year(t.Fecha) as varchar(4)), 4) + '-' + right('00' + cast(month(t.Fecha) as varchar(2)), 2)
 		order by sum(t.Cantidad) desc
 	end
 GO
 
---Top 5 número 3: Vendedores con mayor cantidad de facturas
+--Top 5 nÃºmero 3: Vendedores con mayor cantidad de facturas
 CREATE PROCEDURE ROAD_TO_PROYECTO.Cantidad_Facturas_Vendedores
 	@Trimestre int,
-	@Año int
+	@AÃ±o int
 	as begin
 		IF OBJECT_ID('ROAD_TO_PROYECTO.#consulta3') IS NOT NULL DROP TABLE ROAD_TO_PROYECTO.#consulta3
 		create table ROAD_TO_PROYECTO.#consulta3(
 		Usuario nvarchar(255),
 		Detalle nvarchar(255),
-		AñoMes nvarchar(255),
+		AÃ±oMes nvarchar(255),
 		Monto numeric(18,0)
 		)
 		insert into ROAD_TO_PROYECTO.#consulta3
-		select u.Usuario, concat(c.Apellido, ' ' ,c.Nombres), right('0000' + cast(year(f.Fecha) as varchar(4)), 4) + '-' + right('00' + cast(month(f.Fecha) as varchar(2)), 2) as 'Año-Mes', count(*) as 'Cantidad Facturas'
+		select u.Usuario, concat(c.Apellido, ' ' ,c.Nombres), right('0000' + cast(year(f.Fecha) as varchar(4)), 4) + '-' + right('00' + cast(month(f.Fecha) as varchar(2)), 2) as 'AÃ±o-Mes', count(*) as 'Cantidad Facturas'
 		from ROAD_TO_PROYECTO.Usuario u, ROAD_TO_PROYECTO.Publicacion p, ROAD_TO_PROYECTO.Factura f, ROAD_TO_PROYECTO.Cliente c, ROAD_TO_PROYECTO.Rol r, ROAD_TO_PROYECTO.Roles_Por_Usuario rpu
 		where u.Usuario = p.UserId and p.PublId = f.PubliId
 		and u.Usuario = rpu.UserId and rpu.RolId = r.RolId and r.Nombre = 'Cliente' and rpu.IdExterno = c.ClieId 
-		and year(f.Fecha) = @Año
+		and year(f.Fecha) = @AÃ±o
 		and ROAD_TO_PROYECTO.DentroDelTrimestre(@Trimestre, f.Fecha) = 1
 		group by u.Usuario, c.Apellido, c.Nombres, right('0000' + cast(year(f.Fecha) as varchar(4)), 4) + '-' + right('00' + cast(month(f.Fecha) as varchar(2)), 2)
 		union
-		select u.Usuario, e.RazonSocial, right('0000' + cast(year(f.Fecha) as varchar(4)), 4) + '-' + right('00' + cast(month(f.Fecha) as varchar(2)), 2) as 'Año-Mes', count(*) as 'Cantidad Facturas'
+		select u.Usuario, e.RazonSocial, right('0000' + cast(year(f.Fecha) as varchar(4)), 4) + '-' + right('00' + cast(month(f.Fecha) as varchar(2)), 2) as 'AÃ±o-Mes', count(*) as 'Cantidad Facturas'
 		from ROAD_TO_PROYECTO.Usuario u, ROAD_TO_PROYECTO.Publicacion p, ROAD_TO_PROYECTO.Factura f, ROAD_TO_PROYECTO.Empresa e, ROAD_TO_PROYECTO.Rol r, ROAD_TO_PROYECTO.Roles_Por_Usuario rpu
 		where u.Usuario = p.UserId and p.PublId = f.PubliId
 		and u.Usuario = rpu.UserId and rpu.RolId = r.RolId and r.Nombre = 'Empresa' and rpu.IdExterno = e.EmprId 
-		and year(f.Fecha) = @Año
+		and year(f.Fecha) = @AÃ±o
 		and ROAD_TO_PROYECTO.DentroDelTrimestre(@Trimestre, f.Fecha) = 1
 		group by u.Usuario, e.RazonSocial, right('0000' + cast(year(f.Fecha) as varchar(4)), 4) + '-' + right('00' + cast(month(f.Fecha) as varchar(2)), 2)
 		order by count(*) desc
 
-		select top 5 Usuario, Detalle, AñoMes, Monto as 'Cantidad'
+		select top 5 Usuario, Detalle, AÃ±oMes, Monto as 'Cantidad'
 		from ROAD_TO_PROYECTO.#consulta3
 		order by Monto desc
 	end
 GO
 
---Top 5 número 4: Vendedores con mayor monto facturado
+--Top 5 nÃºmero 4: Vendedores con mayor monto facturado
 CREATE PROCEDURE ROAD_TO_PROYECTO.Monto_Facturado_Vendedor
 	@Trimestre int,
-	@Año int
+	@AÃ±o int
 	as begin
 		IF OBJECT_ID('ROAD_TO_PROYECTO.#consulta4') IS NOT NULL DROP TABLE ROAD_TO_PROYECTO.#consulta4
 		create table ROAD_TO_PROYECTO.#consulta4(
 		Usuario nvarchar(255),
 		Detalle nvarchar(255),
-		AñoMes nvarchar(255),
+		AÃ±oMes nvarchar(255),
 		Monto numeric(18,2)
 		)
 		insert into ROAD_TO_PROYECTO.#consulta4
-		select u.Usuario, concat(c.Apellido, ' ' ,c.Nombres), right('0000' + cast(year(f.Fecha) as varchar(4)), 4) + '-' + right('00' + cast(month(f.Fecha) as varchar(2)), 2) as 'Año-Mes', sum(f.Monto) as 'Monto Facturado'
+		select u.Usuario, concat(c.Apellido, ' ' ,c.Nombres), right('0000' + cast(year(f.Fecha) as varchar(4)), 4) + '-' + right('00' + cast(month(f.Fecha) as varchar(2)), 2) as 'AÃ±o-Mes', sum(f.Monto) as 'Monto Facturado'
 		from ROAD_TO_PROYECTO.Usuario u, ROAD_TO_PROYECTO.Publicacion p, ROAD_TO_PROYECTO.Factura f, ROAD_TO_PROYECTO.Cliente c, ROAD_TO_PROYECTO.Rol r, ROAD_TO_PROYECTO.Roles_Por_Usuario rpu
 		where u.Usuario = p.UserId and p.PublId = f.PubliId
 		and u.Usuario = rpu.UserId and rpu.RolId = r.RolId and r.Nombre = 'Cliente' and rpu.IdExterno = c.ClieId 
-		and year(f.Fecha) = @Año
+		and year(f.Fecha) = @AÃ±o
 		and ROAD_TO_PROYECTO.DentroDelTrimestre(@Trimestre, f.Fecha) = 1
 		group by u.Usuario, c.Apellido, c.Nombres, right('0000' + cast(year(f.Fecha) as varchar(4)), 4) + '-' + right('00' + cast(month(f.Fecha) as varchar(2)), 2)
 		union
-		select u.Usuario, e.RazonSocial, right('0000' + cast(year(f.Fecha) as varchar(4)), 4) + '-' + right('00' + cast(month(f.Fecha) as varchar(2)), 2) as 'Año-Mes', sum(f.Monto)  as 'Monto Facturado'
+		select u.Usuario, e.RazonSocial, right('0000' + cast(year(f.Fecha) as varchar(4)), 4) + '-' + right('00' + cast(month(f.Fecha) as varchar(2)), 2) as 'AÃ±o-Mes', sum(f.Monto)  as 'Monto Facturado'
 		from ROAD_TO_PROYECTO.Usuario u, ROAD_TO_PROYECTO.Publicacion p, ROAD_TO_PROYECTO.Factura f, ROAD_TO_PROYECTO.Empresa e, ROAD_TO_PROYECTO.Rol r, ROAD_TO_PROYECTO.Roles_Por_Usuario rpu
 		where u.Usuario = p.UserId and p.PublId = f.PubliId
 		and u.Usuario = rpu.UserId and rpu.RolId = r.RolId and r.Nombre = 'Empresa' and rpu.IdExterno = e.EmprId 
-		and year(f.Fecha) = @Año
+		and year(f.Fecha) = @AÃ±o
 		and ROAD_TO_PROYECTO.DentroDelTrimestre(@Trimestre, f.Fecha) = 1
 		group by u.Usuario, e.RazonSocial, right('0000' + cast(year(f.Fecha) as varchar(4)), 4) + '-' + right('00' + cast(month(f.Fecha) as varchar(2)), 2)
 		order by sum(f.Monto) desc
@@ -1795,7 +1782,7 @@ CREATE TRIGGER ROAD_TO_PROYECTO.Actualizar_Stock_y_Facturar on ROAD_TO_PROYECTO.
 					execute ROAD_TO_PROYECTO.Finalizar_Publicacion @PubliId = @PubliId
 				end
 				
-				--Busco el último número de factura y determino el siguiente
+				--Busco el Ãºltimo nÃºmero de factura y determino el siguiente
 				select top 1 @UltimaFactura = FactNro from ROAD_TO_PROYECTO.Factura order by FactNro desc
 				set @FacturaActual = @UltimaFactura + 1
 
@@ -1803,26 +1790,26 @@ CREATE TRIGGER ROAD_TO_PROYECTO.Actualizar_Stock_y_Facturar on ROAD_TO_PROYECTO.
 				insert into ROAD_TO_PROYECTO.Factura (FactNro, PubliId, Fecha)--, Monto, FormaPago)
 				values(@FacturaActual, @PubliId, @Fecha)
 
-				--Busco la comisión por ventas de la publicación
+				--Busco la comisiÃ³n por ventas de la publicaciÃ³n
 				select @ComiVariable = ComiVariable 
 				from ROAD_TO_PROYECTO.Visibilidad v, ROAD_TO_PROYECTO.Publicacion p
 				where p.PublId = @PubliId and p.Visibilidad = v.VisiId
 
 				--Creo los items de la factura
 				insert into ROAD_TO_PROYECTO.Item_Factura (FactNro, Cantidad, Detalle, Monto)
-				values(@FacturaActual, @Cantidad, 'Comisión por productos vendidos', @Cantidad * @ComiVariable * (select Precio from ROAD_TO_PROYECTO.Publicacion where PublId = @PubliId))
+				values(@FacturaActual, @Cantidad, 'ComisiÃ³n por productos vendidos', @Cantidad * @ComiVariable * (select Precio from ROAD_TO_PROYECTO.Publicacion where PublId = @PubliId))
 				
-				--Verifico si corresponde comisiones por envío
+				--Verifico si corresponde comisiones por envÃ­o
 				if(((select p.EnvioHabilitado from ROAD_TO_PROYECTO.Publicacion p where p.PublId = @PubliId) = 1) and @ConEnvio = 1)
 					begin
-						--Busco la comisión por envío de la publicación
+						--Busco la comisiÃ³n por envÃ­o de la publicaciÃ³n
 						select @ComiEnvio = ComiEnvio 
 						from ROAD_TO_PROYECTO.Visibilidad v, ROAD_TO_PROYECTO.Publicacion p
 						where p.PublId = @PubliId and p.Tipo = v.VisiId
 
 						--Creo los items de la factura
 						insert into ROAD_TO_PROYECTO.Item_Factura (FactNro, Cantidad, Detalle, Monto)
-						values(@FacturaActual, @Cantidad, 'Comisión por envío de producto', @Cantidad * @ComiEnvio * (select Precio from ROAD_TO_PROYECTO.Publicacion where PublId = @PubliId))
+						values(@FacturaActual, @Cantidad, 'ComisiÃ³n por envÃ­o de producto', @Cantidad * @ComiEnvio * (select Precio from ROAD_TO_PROYECTO.Publicacion where PublId = @PubliId))
 					end
 				
 				update ROAD_TO_PROYECTO.Factura
@@ -1860,7 +1847,7 @@ CREATE TRIGGER ROAD_TO_PROYECTO.Determinar_Oferta_Ganadora_Y_Facturar_Finalizada
 				set Ganadora = 1
 				where TranId = (select top 1 TranId  from ROAD_TO_PROYECTO.Transaccion where PubliId = @PubliId order by Monto desc)
 
-				--Busco el último número de factura y determino el siguiente
+				--Busco el Ãºltimo nÃºmero de factura y determino el siguiente
 				select top 1 @UltimaFactura = FactNro from ROAD_TO_PROYECTO.Factura order by FactNro desc
 				set @FacturaActual = @UltimaFactura + 1
 
@@ -1868,7 +1855,7 @@ CREATE TRIGGER ROAD_TO_PROYECTO.Determinar_Oferta_Ganadora_Y_Facturar_Finalizada
 				insert into ROAD_TO_PROYECTO.Factura (FactNro, PubliId, Fecha)--, Monto, FormaPago)
 				values(@FacturaActual, @PubliId, (select FechaFin from ROAD_TO_PROYECTO.Publicacion where PublId = @PubliId))
 
-				--Busco la comisión fija y la comisión por ventas de la publicación
+				--Busco la comisiÃ³n fija y la comisiÃ³n por ventas de la publicaciÃ³n
 				select @ComiFija = ComiFija 
 				from ROAD_TO_PROYECTO.Visibilidad v, ROAD_TO_PROYECTO.Publicacion p 
 				where p.PublId = @PubliId and p.Visibilidad = v.VisiId
@@ -1879,22 +1866,22 @@ CREATE TRIGGER ROAD_TO_PROYECTO.Determinar_Oferta_Ganadora_Y_Facturar_Finalizada
 
 				--Creo los items de la factura
 				insert into ROAD_TO_PROYECTO.Item_Factura (FactNro, Cantidad, Detalle, Monto) 
-				values (@FacturaActual, 1, 'Precio por tipo publicación', @ComiFija)
+				values (@FacturaActual, 1, 'Precio por tipo publicaciÃ³n', @ComiFija)
 
 				insert into ROAD_TO_PROYECTO.Item_Factura (FactNro, Cantidad, Detalle, Monto)
-				values(@FacturaActual, 1, 'Comisión por productos vendidos', @ComiVariable * (select Monto from ROAD_TO_PROYECTO.Transaccion where Ganadora = 1 and PubliId = @PubliId))
+				values(@FacturaActual, 1, 'ComisiÃ³n por productos vendidos', @ComiVariable * (select Monto from ROAD_TO_PROYECTO.Transaccion where Ganadora = 1 and PubliId = @PubliId))
 				
-				--Verifico si corresponde comisiones por envío
+				--Verifico si corresponde comisiones por envÃ­o
 				if(((select p.EnvioHabilitado from ROAD_TO_PROYECTO.Publicacion p where p.PublId = @PubliId) = 1) and ((select ConEnvio from ROAD_TO_PROYECTO.Transaccion where Ganadora = 1 and PubliId = @PubliId) = 1))
 					begin
-						--Busco la comisión por envío de la publicación
+						--Busco la comisiÃ³n por envÃ­o de la publicaciÃ³n
 						select @ComiEnvio = ComiEnvio 
 						from ROAD_TO_PROYECTO.Visibilidad v, ROAD_TO_PROYECTO.Publicacion p
 						where p.PublId = @PubliId and p.Visibilidad = v.VisiId
 
 						--Creo los items de la factura
 						insert into ROAD_TO_PROYECTO.Item_Factura (FactNro, Cantidad, Detalle, Monto)
-						values(@FacturaActual, 1, 'Comisión por envío de producto', @ComiEnvio * (select Monto from ROAD_TO_PROYECTO.Transaccion where Ganadora = 1 and PubliId = @PubliId))
+						values(@FacturaActual, 1, 'ComisiÃ³n por envÃ­o de producto', @ComiEnvio * (select Monto from ROAD_TO_PROYECTO.Transaccion where Ganadora = 1 and PubliId = @PubliId))
 					end
 
 				update ROAD_TO_PROYECTO.Factura
@@ -1926,7 +1913,7 @@ GO
 
 
 --ATRODEN UN ROGER
-insert into ROAD_TO_PROYECTO.Usuario (Usuario, Contraseña, Mail)
+insert into ROAD_TO_PROYECTO.Usuario (Usuario, ContraseÃ±a, Mail)
 values('admin', SUBSTRING(master.dbo.fn_varbintohexstr(HashBytes('SHA2_256', 'w23e')), 3, 255), 'admin@mercadoEnvio.org')
 
 insert into ROAD_TO_PROYECTO.Roles_Por_Usuario (UserId, RolId)
